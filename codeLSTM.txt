@@ -23,10 +23,10 @@ scaler4=Pipeline([('quant', QuantileTransformer(n_quantiles=int(samples*0.2), ou
 scaler5=Pipeline([('quant', QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='normal', subsample=int(samples), random_state=1234)),
                   ('minmax', MinMaxScaler(feature_range=(-1, 1)))]) # els: -1, 1
 x1=scaler1.fit_transform(df[['A131_J', 'AR_m', 'T_K']])
-x2=scaler2.fit_transform(df[['Z1_V', 'Z2_V']])
+x2=scaler2.fit_transform(df[['Z1_V']])
 x3=scaler3.fit_transform(df[['IS_M', 'z', 'H_nm']])
-y1=scaler4.fit_transform(df[['VDW_SP_kT']])
-y2=scaler5.fit_transform(df[['ELS_SP_kT']])
+y1=scaler4.fit_transform(df[['VDW_SS_kT']])
+y2=scaler5.fit_transform(df[['ELS_SS_kT']])
 x=np.hstack((x1, x2, x3))
 y=np.hstack((y1, y2))
 len1=df['H_nm'].value_counts().get(1.000, 0)
@@ -57,7 +57,7 @@ loss_t_histories=[]
 loss_v_histories=[]
 for i in range(12):
     # 3.1. Train
-    history=model.fit(x_train, y_train, epochs=70*3, batch_size=16384, validation_data=(x_test, y_test), shuffle=True, verbose=0)
+    history=model.fit(x_train, y_train, epochs=210, batch_size=16384, validation_data=(x_test, y_test), shuffle=True, verbose=0)
     # 3.2. Test
     loss_v=model.evaluate(x_test, y_test, verbose=0)    
     # 3.3. Loss histories
