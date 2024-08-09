@@ -1,8 +1,8 @@
 ### Thank you for looking at our code. Please cite our work when you use this code, thanks
-### 1. Database (you can find it in our repository https://github.com/adgfo/Gomez-Flores-etal_12)
+### 1. Database (you can find it in our repository https://github.com/adgfo/Gomez-Flores-etal_13)
 import pandas as pd # pd version 2.1.4
 df=pd.read_csv('Database0_SS.csv')
-### 2.1. Data processing
+### 2. Data processing
 import numpy as np # np version 1.26.2
 from sklearn.preprocessing import MinMaxScaler, QuantileTransformer # scikit-learn version 1.3.0
 from sklearn.pipeline import Pipeline
