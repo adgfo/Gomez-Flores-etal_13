@@ -22,7 +22,7 @@ scaler4=Pipeline([('quant', QuantileTransformer(n_quantiles=int(samples*0.2), ou
                   ('neg', NegativeTransformer())]) # vdw: -1, 0
 scaler5=Pipeline([('quant', QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='normal', subsample=int(samples), random_state=1234)),
                   ('minmax', MinMaxScaler(feature_range=(-1, 1)))]) # els: -1, 1
-x1=scaler1.fit_transform(df[['A132_J', 'AR_m', 'T_K']])
+x1=scaler1.fit_transform(df[['A131_J', 'AR_m', 'T_K']])
 x2=scaler2.fit_transform(df[['Z1_V', 'Z2_V']])
 x3=scaler3.fit_transform(df[['IS_M', 'z', 'H_nm']])
 y1=scaler4.fit_transform(df[['VDW_SP_kT']])
