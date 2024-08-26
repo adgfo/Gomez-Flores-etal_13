@@ -21,7 +21,7 @@ class NegativeTransformer(BaseEstimator, TransformerMixin): # Define a transform
 samples = round(len(df['H_nm'])) # Define samples for quantile transformer
 
 scaler1 = QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234) #  A131, a1, T: 0, 1
-scaler2 = MinMaxScaler(feature_range=(-1, 1)) # zeta: -1, 1
+scaler2 = MinMaxScaler(feature_range=(-1, 1)) # zeta1: -1, 1
 scaler3 = QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234) # c, z, H: 0, 1
 scaler4 = Pipeline([('quant', QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234)),
                   ('neg', NegativeTransformer())]) # vdw: -1, 0
@@ -34,7 +34,7 @@ x3 = scaler3.fit_transform(df[['IS_M', 'z', 'H_nm']])
 y1 = scaler4.fit_transform(df[['VDW_SS_kT']])
 y2 = scaler5.fit_transform(df[['ELS_SS_kT']])
 
-x = np.hstack((x1, x2, x3)) # Combine scaled input variables (A131, a1, T, zeta, c, z, H)
+x = np.hstack((x1, x2, x3)) # Combine scaled input variables (A131, a1, T, zeta1, c, z, H)
 y = np.hstack((y1, y2)) # Combine scaled output variables (vdw, els)
 
 len1 = df['H_nm'].value_counts().get(1.000, 0) # Check the times that H range repeats. H range is e.g. 1 nm to 100 nm
@@ -67,13 +67,11 @@ model.add(Dense(units=y_train.shape[1], activation='tanh', kernel_initializer='g
 opt = RMSprop(learning_rate=0.001, rho=0.90, momentum=0.90, epsilon=1E-7, centered=False) # Define optimizer
 model.compile(optimizer=opt, loss='mean_squared_error') # Compile LSTM
 
-loss_t_histories = []
-loss_v_histories = []
+loss_train_histories = []
+loss_test_histories = []
 for i in range(12):
     ### 3.1. Train ###
     history = model.fit(x_train, y_train, epochs=210, batch_size=16384, validation_data=(x_test, y_test), shuffle=True, verbose=0)
-    ### 3.2. Test ###
-    loss_v = model.evaluate(x_test, y_test, verbose=0)    
-    ### 3.3. Loss histories ###
-    loss_t_histories.append(history.history['loss'])
-    loss_v_histories.append(history.history['val_loss'])
+    ### 3.2. Loss histories ###
+    loss_train_histories.append(history.history['loss'])
+    loss_test_histories.append(history.history['val_loss'])
