@@ -23,7 +23,7 @@ The code includes package versions, database loading, database scaling, LSTM set
 
 *A link to access the free web app of an XDLVO model is provided in this folder.*
 
-The app is for a surface element approach in a sphere-sphere configuration. The size distrubutions for two spheres of different diameters is considered.
+The app is for a surface element approach in a sphere-sphere configuration. The size distrubutions of two spheres of different diameters are considered.
 
 This folder also contains trained scalers, trained machine learning model, and images used in the web app.
 
