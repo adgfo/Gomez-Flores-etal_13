@@ -8,12 +8,11 @@ import numpy as np
 df = pd.read_csv('Database1_SS_XDLVO.csv') # Load database having XDLVO data (SEI sphere-sphere)
 
 ### 3. Scale ###
-import numpy as np
 from sklearn.preprocessing import MinMaxScaler, QuantileTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.base import BaseEstimator, TransformerMixin
 
-class NegativeTransformer(BaseEstimator, TransformerMixin):
+class NegativeTransformer(BaseEstimator, TransformerMixin): # Define a transformer to change sign
     def fit(self, X, y=None):        
         return self
     def transform(self, X):        
@@ -21,10 +20,11 @@ class NegativeTransformer(BaseEstimator, TransformerMixin):
     def inverse_transform(self, X):
         return X * -1
 
-samples = round(len(df['H_nm']))
-scaler1 = QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234) #  A, ar, T: 0, 1
-scaler2 = MinMaxScaler(feature_range=(-1, 1)) # zeta: -1, 1
-scaler3 = QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234) # IS, z: 0, 1
+samples = round(len(df['H_nm'])) # Define samples for quantile transformer
+
+scaler1 = QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234) #  A131, a1, T: 0, 1
+scaler2 = MinMaxScaler(feature_range=(-1, 1)) # zeta1: -1, 1
+scaler3 = QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234) # c, z: 0, 1
 scaler4 = MinMaxScaler(feature_range=(-1, 1)) # AG131: -1, 1
 scaler5 = QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234) # H: 0, 1
 scaler6 = Pipeline([('quant', QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234)),
@@ -43,16 +43,19 @@ y1 = scaler6.fit_transform(df[['VDW_SS_kT']])
 y2 = scaler7.fit_transform(df[['ELS_SS_kT']])
 y3 = scaler8.fit_transform(df[['AB_SS_kT']])
 y4 = scaler9.fit_transform(df[['BORN_SS_kT']])
-x = np.hstack((x1, x2, x3, x4, x5))
-y = np.hstack((y1, y2, y3, y4))
+
+x = np.hstack((x1, x2, x3, x4, x5)) # Combine scaled input variables (A131, a1, T, zeta1, c, z, AG131, H)
+y = np.hstack((y1, y2, y3, y4)) # Combine scaled output variables (vdw, els, ab, born)
 
 ### 4. FBNN modeling ###
 from sklearn.neural_network import MLPRegressor
 from sklearn.metrics import mean_squared_error
 
-len1 = df['H_nm'].value_counts().get(1.000, 0)
-len2 = int(len(df['H_nm'])/len1)
-take=11800
+len1 = df['H_nm'].value_counts().get(1.000, 0) # Check the times that H range repeats. H range is e.g. 1 nm to 100 nm
+len2 = int(len(df['H_nm'])/len1) # Check the length of an individual H range
+print(len1, len2)
+
+take = 11800 # Sample for testing after training based on len1
 x_train, x_test = x[0:take*len2, :], x[take*len2:, :]
 y_train, y_test = y[0:take*len2, :], y[take*len2:, :]
 
@@ -61,7 +64,9 @@ model = MLPRegressor(hidden_layer_sizes=(256, 256, 128, 64), activation='tanh', 
 model.fit(x_train, y_train)
 
 y_test_pred = model.predict(x_test)
-loss_v = mean_squared_error(y_test, y_test_pred)
+loss_test = mean_squared_error(y_test, y_test_pred)
 
-loss_t_histories.append(model.loss_curve_)
-loss_v_histories.append(loss_v)
+loss_train_histories = []
+loss_test_histories = []
+loss_train_histories.append(model.loss_curve_)
+loss_test_histories.append(loss_test)
