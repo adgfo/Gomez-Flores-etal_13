@@ -1,0 +1,67 @@
+####### Please cite our work when you use this code, thanks #######
+
+### 1. Libraries ###
+import pandas as pd
+import numpy as np
+
+### 2. Database (you can dowload it from the repository https://github.com/adgfo/Gomez-Flores-etal_13) ###
+df = pd.read_csv('Database1_SS_XDLVO.csv') # Load database having XDLVO data (SEI sphere-sphere)
+
+### 3. Scale ###
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler, QuantileTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.base import BaseEstimator, TransformerMixin
+
+class NegativeTransformer(BaseEstimator, TransformerMixin):
+    def fit(self, X, y=None):        
+        return self
+    def transform(self, X):        
+        return X * -1
+    def inverse_transform(self, X):
+        return X * -1
+
+samples = round(len(df['H_nm']))
+scaler1 = QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234) #  A, ar, T: 0, 1
+scaler2 = MinMaxScaler(feature_range=(-1, 1)) # zeta: -1, 1
+scaler3 = QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234) # IS, z: 0, 1
+scaler4 = MinMaxScaler(feature_range=(-1, 1)) # AG131: -1, 1
+scaler5 = QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234) # H: 0, 1
+scaler6 = Pipeline([('quant', QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234)),
+                  ('neg', NegativeTransformer())]) # vdw: -1, 0
+scaler7 = QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234) # els: 0, 1
+scaler8 = Pipeline([('quant', QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='normal', subsample=int(samples), random_state=1234)),
+                  ('minmax', MinMaxScaler(feature_range=(-1, 1)))]) # ab: -1, 1
+scaler9 = QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234) # born: 0, 1
+  
+x1 = scaler1.fit_transform(df[['A131_J', 'AR_m', 'T_K']])
+x2 = scaler2.fit_transform(df[['Z1_V']])
+x3 = scaler3.fit_transform(df[['IS_M', 'z']])
+x4 = scaler4.fit_transform(df[['AG131_Jm2']])
+x5 = scaler5.fit_transform(df[['H_nm']])
+y1 = scaler6.fit_transform(df[['VDW_SS_kT']])
+y2 = scaler7.fit_transform(df[['ELS_SS_kT']])
+y3 = scaler8.fit_transform(df[['AB_SS_kT']])
+y4 = scaler9.fit_transform(df[['BORN_SS_kT']])
+x = np.hstack((x1, x2, x3, x4, x5))
+y = np.hstack((y1, y2, y3, y4))
+
+### 4. FBNN modeling ###
+from sklearn.neural_network import MLPRegressor
+from sklearn.metrics import mean_squared_error
+
+len1 = df['H_nm'].value_counts().get(1.000, 0)
+len2 = int(len(df['H_nm'])/len1)
+take=11800
+x_train, x_test = x[0:take*len2, :], x[take*len2:, :]
+y_train, y_test = y[0:take*len2, :], y[take*len2:, :]
+
+model = MLPRegressor(hidden_layer_sizes=(256, 256, 128, 64), activation='tanh', solver='adam', batch_size=16384, learning_rate='constant', learning_rate_init=0.001, 
+                   max_iter=70*3, shuffle=True, random_state=1234, verbose=False, momentum=0.9, epsilon=1E-7)
+model.fit(x_train, y_train)
+
+y_test_pred = model.predict(x_test)
+loss_v = mean_squared_error(y_test, y_test_pred)
+
+loss_t_histories.append(model.loss_curve_)
+loss_v_histories.append(loss_v)
