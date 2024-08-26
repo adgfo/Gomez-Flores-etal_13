@@ -20,7 +20,7 @@ class NegativeTransformer(BaseEstimator, TransformerMixin): # Define a transform
     def inverse_transform(self, X):
         return X * -1
 
-samples = round(len(df['H_nm'])) # Define samples for quantile transformer
+samples = round(len(df['H_nm'])) # Define samples for the quantile transformer
 
 scaler1 = QuantileTransformer(n_quantiles=int(samples*0.2), output_distribution='uniform', subsample=int(samples), random_state=1234) #  A131, a1, T: 0, 1
 scaler2 = MinMaxScaler(feature_range=(-1, 1)) # zeta1: -1, 1
