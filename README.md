@@ -1,6 +1,6 @@
-# Paper title
+# Combining size distribution and shape of plastic and oxide particles to evaluate physicochemical interactions: Aggregation and attachment
 
-This repository provides relevant files referenced in **[our paper](https://supportive-red-diamond-rattlesnake.anacondaapps.cloud/)** (link will be updated when the paper is published). Feel free to use the files, but please acknowledge their source by citing this repository and/or the paper.
+This repository provides relevant files referenced in **[our paper](https://www.sciencedirect.com/science/article/pii/S0304389425002973)**. Feel free to use the files, but please acknowledge their source by citing this repository and/or the paper.
 The repository includes four folders: **figures**, **databases**, **LSTM**, and **web-application**.
 
 ## figures
